@@ -7,28 +7,6 @@ ANS = "ans.csv"  # 第一欄=句子ID, 第二欄=繁中最終句子（若不同�
 GLOSS_DIR = "gloss_csvs"  # 放各句的 gloss csv
 OUT = Path("data"); OUT.mkdir(exist_ok=True)
 
-# ---- 1) 讀取答案表 ----
-# 假設 ans.csv 形式：id, text
-id2tgt = {}
-with open(ANS, "r", encoding="utf-8") as f:
-    r = csv.reader(f)
-    for row in r:
-        if not row: continue
-        sid = str(row[0]).strip()
-        # 如果你的答案在第 3 欄，改成 row[2]
-        tgt = str(row[1]).strip()
-        if sid and tgt:
-            id2tgt[sid] = tgt
-
-# ---- 2) 工具：繁中/全半形正規化 + gloss 清洗規則 ----
-def znormalize(s: str) -> str:
-    # NFKC 正規化，常見全形符號 → 半形
-    return unicodedata.normalize("NFKC", s)
-
-# 允許的 gloss 形狀（繁中詞、拉丁字、數字、連字號），避免雜訊
-ALLOW = re.compile(r"^[\u4e00-\u9fffA-Za-z0-9\-]+$")
-
-BLACK = set(["", "UNK", "<unk>", "<noise>", "SIL", "SP", "PAD"])
 def clean_and_filter_gloss(rows):
     """
     rows: list of dict/row，預期有 'gloss' 欄（可選 'score'）
@@ -65,6 +43,27 @@ def clean_and_filter_gloss(rows):
 
     # 4) 以空白連接成 src 字串
     return " ".join(toks)
+
+# ---- 1) 讀取答案表 ----
+# 假設 ans.csv 形式：id, text
+id2tgt = {}
+with open(ANS, "r", encoding="utf-8") as f:
+    r = csv.reader(f)
+    for row in r:
+        if not row: continue
+        sid = str(row[0]).strip()
+        tgt = str(row[1]).strip()
+        if sid and tgt:
+            id2tgt[sid] = tgt
+
+# ---- 2) 工具：繁中/全半形正規化 + gloss 清洗規則 ----
+def znormalize(s: str) -> str:
+    # NFKC 正規化，常見全形符號 → 半形
+    return unicodedata.normalize("NFKC", s)
+
+# 允許的 gloss 形狀（繁中詞、拉丁字、數字、連字號），避免雜訊
+ALLOW = re.compile(r"^[\u4e00-\u9fffA-Za-z0-9\-]+$")
+BLACK = set(["", "UNK", "<unk>", "<noise>", "SIL", "SP", "PAD"])
 
 # ---- 3) 讀每句的 gloss csv 並配對答案 ----
 src_lines, tgt_lines = [], []
