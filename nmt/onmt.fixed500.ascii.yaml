@@ -1,0 +1,48 @@
+transforms: [sentencepiece]
+src_subword_model: sp_shared.model
+tgt_subword_model: sp_shared.model
+data:
+  corpus_1: { path_src: data/train.src, path_tgt: data/train.tgt }
+  valid:    { path_src: data/valid.src, path_tgt: data/valid.tgt }
+
+encoder_type: transformer
+decoder_type: transformer
+layers: 2
+heads: 4
+rnn_size: 500
+word_vec_size: 500
+src_word_vec_size: 500
+tgt_word_vec_size: 500
+transformer_ff: 2000
+position_encoding: true
+dropout: 0.3
+label_smoothing: 0.2
+
+share_vocab: true
+share_embeddings: true
+
+optim: adam
+adam_beta2: 0.998
+decay_method: noam
+warmup_steps: 4000
+learning_rate: 2.0
+max_grad_norm: 0
+
+batch_type: tokens
+batch_size: 512
+accum_count: [4]
+normalization: tokens
+
+train_steps: 8000
+valid_steps: 250
+save_checkpoint_steps: 250
+early_stopping: 5
+early_stopping_criteria: accuracy
+
+save_model: runs/gloss2zh_tiny/model
+tensorboard: true
+tensorboard_log_dir: runs/tb_tiny
+
+src_vocab: data/src.vocab
+tgt_vocab: data/tgt.vocab
+world_size: 1
