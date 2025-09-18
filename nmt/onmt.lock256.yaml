@@ -1,0 +1,59 @@
+# onmt.lock256.yaml - CPU / SentencePiece / 256-dim everywhere
+transforms: [sentencepiece]
+src_subword_model: sp_shared.model
+tgt_subword_model: sp_shared.model
+
+data:
+  corpus_1:
+    path_src: data/train.src
+    path_tgt: data/train.tgt
+  valid:
+    path_src: data/valid.src
+    path_tgt: data/valid.tgt
+
+encoder_type: transformer
+decoder_type: transformer
+layers: 2
+heads: 4
+# ---- 這四個一定要一致 ----
+hidden_size: 256          # v3 會用 hidden_size 當 d_model
+rnn_size: 256             # 保險起見也寫（有些版本仍讀這個）
+word_vec_size: 256
+src_word_vec_size: 256
+tgt_word_vec_size: 256
+# -------------------------
+transformer_ff: 1024
+position_encoding: true
+dropout: 0.3
+label_smoothing: 0.2
+
+share_vocab: true
+share_embeddings: true
+
+optim: adam
+# 用「不衰減＋小學習率」避免你先前遇到的 overflow
+decay_method: none
+learning_rate: 5e-4
+max_grad_norm: 5
+param_init: 0
+param_init_glorot: true
+model_dtype: fp32
+
+batch_type: tokens
+batch_size: 512
+accum_count: [4]
+normalization: tokens
+
+train_steps: 8000
+valid_steps: 250
+save_checkpoint_steps: 250
+early_stopping: 5
+early_stopping_criteria: accuracy
+
+save_model: runs/gloss2zh_tiny/model
+tensorboard: true
+tensorboard_log_dir: runs/tb_tiny
+
+src_vocab: data/src.vocab
+tgt_vocab: data/tgt.vocab
+world_size: 1
